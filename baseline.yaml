@@ -1,0 +1,39 @@
+#dev_directory : /home/kyeonji/dataset/smi-anomaly/0dB
+dev_directory : /home/kyeonji/dataset/dcaseToyCar
+#dev_directory : /home/kyeonji/dataset/ToyCar_dB
+eval_directory : ./eval_data
+
+data_directory: ./data/0810
+
+model_directory: ./model/0810
+save_directory: ./test_save/0810_540e
+
+result_directory: ./result/0810_540e
+log_dir: ./runs/0810_540e
+
+
+result_file: result.csv
+
+clean_directory: /home/kyeonji/dataset/ToyCar_dB/ToyCar/clean
+
+denoising : none
+max_fpr : 0.1
+
+feature:
+  n_mels: 128
+  frames : None
+  n_fft: 2048
+  num_ch : 1
+  hop_length: 512
+  power: 2.0
+
+#compile:
+#    optimizer : adam
+#    loss : mean_squared_error
+
+fit:
+  epochs : 200
+  batch_size : 256
+  shuffle : True
+  validation_split : 0.1
+  verbose : 1
