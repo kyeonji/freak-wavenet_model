@@ -180,7 +180,7 @@ def draw_true_spectrogram(file_path_list,
                                                          hop_length=hop_length,
                                                          n_mels=n_mels,
                                                          power=power)
-        log_mel_spectrogram = librosa.core.power_to_db(mel_spectrogram[:, 40:264])
+        log_mel_spectrogram = librosa.core.power_to_db(mel_spectrogram)
 
         log_mel_spec_fig = plt.figure(dpi=150, )
         plt.imshow(log_mel_spectrogram,
@@ -237,7 +237,7 @@ def draw_clean_spectrogram(file_path_list,
                                                          hop_length=hop_length,
                                                          n_mels=n_mels,
                                                          power=power)
-        log_mel_spectrogram = librosa.core.power_to_db(mel_spectrogram[:, 40:264])
+        log_mel_spectrogram = librosa.core.power_to_db(mel_spectrogram)
 
         log_mel_spec_fig = plt.figure(dpi=150, )
         plt.imshow(log_mel_spectrogram,

@@ -33,6 +33,7 @@ from keras import metrics
 from keras import objectives
 from wavenet_utils import CausalAtrousConvolution1D, categorical_mean_squared_error
 import keras
+import probability
 
 ########################################################################
 
@@ -47,7 +48,7 @@ param = com.yaml_load()
 ########################################################################
 # select gpu
 ########################################################################
-os.environ["CUDA_VISIBLE_DEVICES"] = "2, 3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "6"
 ########################################################################
 
 
@@ -283,36 +284,36 @@ if __name__ == "__main__":
         kernel_size = 3
         num_residual_blocks = 3
 
-        model = model.build_wavenet_model(input_size, num_channel, num_filters,
-                                          kernel_size, num_residual_blocks)
-
-        mc = keras.callbacks.ModelCheckpoint(param['model_directory']
-                                             + '/weights.{epoch:08d}.h5',
-                                             save_weights_only=False, period=10)
-
-        history = model.fit(org_data,
-                            org_data[:, 8:, :],
-                            **param['fit'],
-                            callbacks=[tensorboard, mc])
-
-        # model = wavenet.build_model(fragment_length=org_data.shape[1])
+        # model = model.build_wavenet_model(input_size, num_channel, num_filters,
+        #                                   kernel_size, num_residual_blocks)
         #
-        # optim = wavenet.make_optimizer()
-        # loss = objectives.categorical_crossentropy
-        # all_metrics = [metrics.categorical_accuracy,
-        #                categorical_mean_squared_error]
+        # mc = keras.callbacks.ModelCheckpoint(param['model_directory']
+        #                                      + '/weights.{epoch:08d}.h5',
+        #                                      save_weights_only=False, period=10)
         #
-        # model.compile(optimizer=optim, loss=loss, metrics=all_metrics)
+        # history = model.fit(org_data,
+        #                     org_data[:, 31:, :],
+        #                     **param['fit'],
+        #                     callbacks=[tensorboard, mc])
         #
-        # model.fit(org_data,
-        #           org_data,
-        #           **param['fit'],
-        #           callbacks=[tensorboard]
-        #           )
-
-        model.save(model_file_path + '_model.hdf5')
-        com.logger.info("save_model -> {}".format(model_file_path))
+        # model.save(model_file_path + '_model.hdf5')
+        # com.logger.info("save_model -> {}".format(model_file_path))
         print("============== END TRAINING ==============")
+
+        model = keras.models.load_model(param['model_directory'] + '/weights.00001000.h5')
+
+        errors = []
+        for i in tqdm(range(org_data.shape[0])):
+            data = org_data[i:i+1, :, :]
+            reconst = model.predict(data, batch_size=1)
+            error = probability.calc_x(data[:, 31:, :], reconst)
+            errors.append(error)
+
+        mu = numpy.mean(errors, axis=0)
+        sigma = numpy.cov(error)
+
+        numpy.save(data_path / 'mu.npy', mu)
+        numpy.save(data_path / 'sigma.npy', sigma)
 
 
 

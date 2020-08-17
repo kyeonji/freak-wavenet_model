@@ -34,6 +34,7 @@ import librosa
 from pathlib import Path
 import keras
 import model
+import probability
 
 ########################################################################
 
@@ -48,7 +49,7 @@ param = com.yaml_load()
 ########################################################################
 # select gpu
 ########################################################################
-os.environ["CUDA_VISIBLE_DEVICES"] = "4"
+os.environ["CUDA_VISIBLE_DEVICES"] = "6"
 
 
 #######################################################################
@@ -291,29 +292,18 @@ if __name__ == "__main__":
         #     com.logger.error("{} model not found ".format(machine_type))
         #     sys.exit(-1)
 
-        # load denoiser if exist
-        # try:
-        #     denoiser = keras.models.load_model(model_file + '_denoiser.hdf5')
-        #     denoiser.summary()
-        # except:
-        #     pass
-        #
         # load detector
         # detector = keras.models.load_model(model_file + '_model.hdf5')
         # detector.summary()
 
-        detector = keras.models.load_model(param['model_directory'] + '/weights.00000540.h5')
+        detector = keras.models.load_model(param['model_directory'] + '/weights.00001000.h5')
         detector.summary()
-
-        if mode:
-            # results by type
-            csv_lines.append([machine_type])
-            csv_lines.append(["id", "AUC", "pAUC"])
-            performance = []
 
         data_path = Path(f'{param["data_directory"]}')
         mean = numpy.load(data_path / 'org_data_mean.npy')  # (B, D) or (B, F, T, C)
         std = numpy.load(data_path / 'org_data_std.npy')
+        mu = numpy.load(data_path / 'mu.npy')
+        sigma = numpy.load(data_path / 'sigma.npy')
 
         machine_id_list = get_machine_id_list_for_test(target_dir)
         denoised_dict = {}
@@ -356,7 +346,10 @@ if __name__ == "__main__":
                             data = numpy.moveaxis(data, 1, 2)
                             reconst = detector.predict(data, batch_size=data.shape[0])
                             reconst_dict[file_path] = reconst
-                            reconst_score[file_idx] = numpy.mean(numpy.square(data[:, 8:, :] - reconst))
+                            # reconst_score[file_idx] = numpy.mean(numpy.square(data[:, 31:, :] - reconst))
+                            x = probability.calc_x(data[:, 31:, :], reconst)
+                            prob = probability.get_prob(x, mu, sigma)
+                            reconst_score[file_idx] = prob
 
                         else:
                             # denoised = denoiser.predict(data, batch_size=data.shape[0])
